@@ -1,0 +1,10 @@
+use_frameworks!
+
+target 'ViperMcFlurrySwift_Example' do
+  pod 'ViperMcFlurrySwift', :path => '../'
+
+  target 'ViperMcFlurrySwift_Tests' do
+    inherit! :search_paths
+
+  end
+end

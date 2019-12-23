@@ -1,0 +1,16 @@
+PODS:
+  - ViperMcFlurrySwift (1.0.0)
+
+DEPENDENCIES:
+  - ViperMcFlurrySwift (from `../`)
+
+EXTERNAL SOURCES:
+  ViperMcFlurrySwift:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  ViperMcFlurrySwift: 88a25641e1d45260cf6a11bb1c5b491f5b1859e8
+
+PODFILE CHECKSUM: f2b3229546ca0da3e1f2f711dbe228c0175b7701
+
+COCOAPODS: 1.8.3
