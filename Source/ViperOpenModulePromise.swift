@@ -7,7 +7,7 @@ public class ViperOpenModulePromise {
     This module is used to link modules one to another. ModuleInput is typically presenter of module.
     Block can be used to return module output.
     */
-    typealias ViperModuleLinkBlock = (_ moduleInput: ViperModuleInput) -> ViperModuleOutput
+    public typealias ViperModuleLinkBlock = (_ moduleInput: ViperModuleInput) -> ViperModuleOutput?
 
     var moduleInput: ViperModuleInput? {
         didSet {
@@ -19,7 +19,7 @@ public class ViperOpenModulePromise {
 
     private var linkBlock: ViperModuleLinkBlock?
 
-    func thenChainUsingBlock(_ linkBlock: @escaping ViperModuleLinkBlock) {
+    public func thenChainUsingBlock(_ linkBlock: @escaping ViperModuleLinkBlock) {
         self.linkBlock = linkBlock
         self.tryPerformLink()
         if let postChainActionBlock = self.postChainActionBlock {
@@ -38,8 +38,9 @@ public class ViperOpenModulePromise {
     private func performLink() {
         guard let linkBlock = self.linkBlock,
             let moduleInput = self.moduleInput else { return }
-        let moduleOutput = linkBlock(moduleInput)
-        moduleInput.setModuleOutput(moduleOutput)
+        if let moduleOutput = linkBlock(moduleInput) {
+            moduleInput.setModuleOutput(moduleOutput)
+        }
 
         if let postLinkActionBlock = self.postLinkActionBlock {
             postLinkActionBlock()

@@ -4,7 +4,7 @@ extension UIViewController: ViperModuleTransitionHandler {
 
     private static let skipOnDismissAssociation = ObjectAssociation<NSNumber>()
     private static let moduleInputAssociation = ObjectAssociation<AnyObject>()
-
+    private static let openModuleUsingSegueKeyAssociation = ObjectAssociation<NSNumber>()
     // MARK: - Properties
     public var skipOnDismiss: Bool {
         get {
@@ -47,15 +47,50 @@ extension UIViewController: ViperModuleTransitionHandler {
 
     // MARK - Navigation
     public func performSegue(_ segueIdentifier: String) {
+        swizzlePrepareForSegue()
         DispatchQueue.main.async {
             self.performSegue(withIdentifier: segueIdentifier, sender: nil)
         }
     }
 
     public func openModuleUsingSegue(_ segueIdentifier: String) -> ViperOpenModulePromise {
+        swizzlePrepareForSegue()
         let openModulePromise = ViperOpenModulePromise()
+
+        UIViewController.openModuleUsingSegueKeyAssociation[self] = nil
+
+        let perform = {
+            if UIViewController.openModuleUsingSegueKeyAssociation[self] == nil {
+                UIViewController.openModuleUsingSegueKeyAssociation[self] = NSNumber(booleanLiteral: true)
+                self.performSegue(withIdentifier: segueIdentifier, sender: openModulePromise)
+            }
+        }
+
+
+        //
+        // defined this to try execute segue if thenChainUsingBlock was called just after current
+        // openModuleUsingSegue call (when you should call some input method of module):
+        //  [[self.transitionHandler openModuleUsingSegue:SegueIdentifier]
+        //        thenChainUsingBlock:^id<RamblerViperModuleOutput>(id<SomeModuleInput> moduleInput) {
+        //            [moduleInput moduleConfigurationMethod];
+        //            return nil;
+        //  }];
+        //  NOTE: In this case segue will be called in synchronous manner
+        //
+        openModulePromise.postChainActionBlock = {
+            perform()
+        }
+
+        //
+        // Also try to call segue if postChainActionBlock was not called in current runloop cycle,
+        // for example, thenChainUsingBlock was not called just after openModuleUsingSegue:
+        //
+        //  [self.transitionHandler openModuleUsingSegue:SegueIdentifier];
+        //
+        //  NOTE: In this case segue will be called in asynchronous manner
+        //
         DispatchQueue.main.async {
-            self.performSegue(withIdentifier: segueIdentifier, sender: openModulePromise)
+            perform()
         }
         return openModulePromise
     }
